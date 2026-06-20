@@ -1,0 +1,1876 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MediQueue Prototype</title>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Screen-reader only helper */
+  .sr-only {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+    border: 0; padding: 0; margin: -1px;
+  }
+
+  /* Focus styles for keyboard users */
+  .qa-btn:focus, .book-btn-sm:focus, .nav-item:focus, .prev-btn:focus, .next-btn:focus, .chip:focus {
+    outline: 3px solid rgba(26,74,122,0.18);
+    outline-offset: 2px;
+  }
+  .proto-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 32px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .flow-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: #f0f4f8;
+    border-radius: 12px;
+    padding: 4px;
+  }
+
+  .flow-tab {
+    padding: 7px 16px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .flow-tab.active {
+    background: #fff;
+    color: #1a4a7a;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+
+  .phone-frame {
+    width: 320px;
+    height: 620px;
+    background: #1a1a2e;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.08);
+    position: relative;
+  }
+
+  .phone-inner {
+    width: 100%;
+    height: 100%;
+    background: #f7fafd;
+    border-radius: 34px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100px; height: 26px;
+    background: #1a1a2e;
+    border-radius: 0 0 18px 18px;
+    z-index: 10;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    background: #f7fafd;
+  }
+
+  .screen.active {
+    display: flex;
+  }
+
+  .status-bar {
+    height: 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 20px 6px;
+    flex-shrink: 0;
+  }
+
+  .status-time { font-size: 12px; font-weight: 600; color: #1a4a7a; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons span { width: 14px; height: 8px; background: #1a4a7a; border-radius: 2px; opacity: 0.7; }
+
+  .screen-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px 8px;
+    background: #fff;
+    border-bottom: 0.5px solid #e8eef4;
+    flex-shrink: 0;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #1a4a7a, #2d7a4e);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .logo-text {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .logo-text .medi { color: #1a4a7a; }
+  .logo-text .queue { color: #3a9c5f; }
+
+  .header-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #e8f4ed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #2d7a4e;
+  }
+
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    scrollbar-width: none;
+  }
+
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  .bottom-nav {
+    display: flex;
+    background: #fff;
+    border-top: 0.5px solid #e8eef4;
+    padding: 8px 0 14px;
+    flex-shrink: 0;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 4px 0;
+    border: none;
+    background: transparent;
+  }
+
+  .nav-icon {
+    font-size: 19px;
+    color: #9ca3af;
+  }
+
+  .nav-item.active .nav-icon { color: #1a4a7a; }
+
+  .nav-label {
+    font-size: 10px;
+    color: #9ca3af;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .nav-item.active .nav-label { color: #1a4a7a; font-weight: 500; }
+
+  .hero-card {
+    background: linear-gradient(135deg, #1a4a7a 0%, #2d6fa8 50%, #2a7a50 100%);
+    border-radius: 16px;
+    padding: 18px 16px;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .hero-greeting { font-size: 12px; opacity: 0.8; margin-bottom: 2px; }
+  .hero-name { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+
+  .hero-stats {
+    display: flex;
+    gap: 10px;
+  }
+
+  .hero-stat {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 8px 12px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .hero-stat-val { font-size: 18px; font-weight: 700; }
+  .hero-stat-lbl { font-size: 10px; opacity: 0.8; }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .qa-btn {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 14px;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .qa-btn:hover { border-color: #1a4a7a; background: #f0f6ff; }
+
+  .qa-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+
+  .qa-label { font-size: 12px; font-weight: 500; color: #1f2937; }
+  .qa-sub { font-size: 10px; color: #9ca3af; }
+
+  .doc-card {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .doc-card:hover { border-color: #1a4a7a; }
+
+  .doc-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .doc-info { flex: 1; }
+  .doc-name { font-size: 13px; font-weight: 600; color: #1f2937; }
+  .doc-spec { font-size: 11px; color: #6b7280; margin-top: 1px; }
+
+  .doc-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+  }
+
+  .rating-badge {
+    display: flex; align-items: center; gap: 2px;
+    background: #fff8e6;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #92600a;
+  }
+
+  .avail-badge {
+    background: #e8f5ed;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #1d6b3a;
+    font-weight: 500;
+  }
+
+  .fee-badge {
+    background: #eef3ff;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #1a4a7a;
+    font-weight: 500;
+  }
+
+  .book-btn-sm {
+    background: #1a4a7a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    flex-shrink: 0;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+
+  .search-bar input {
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #374151;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-bar input::placeholder { color: #9ca3af; }
+
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .filter-chips::-webkit-scrollbar { display: none; }
+
+  .chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 0.5px solid #e8eef4;
+    background: #fff;
+    color: #6b7280;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .chip.active { background: #1a4a7a; color: #fff; border-color: #1a4a7a; }
+
+  .booking-detail {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .doc-profile-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 0.5px solid #f0f4f8;
+  }
+
+  .doc-profile-avatar {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; color: #fff;
+  }
+
+  .profile-name { font-size: 15px; font-weight: 600; color: #1f2937; }
+  .profile-spec { font-size: 12px; color: #6b7280; }
+  .profile-hospital { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+  .cal-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .cal-day.header { color: #9ca3af; font-size: 10px; font-weight: 400; cursor: default; }
+  .cal-day.inactive { color: #d1d5db; cursor: default; }
+  .cal-day.today { background: #e8f4ed; color: #2d7a4e; font-weight: 600; }
+  .cal-day.selected { background: #1a4a7a; color: #fff; font-weight: 600; }
+  .cal-day:hover:not(.header):not(.inactive) { background: #f0f6ff; }
+
+  .time-slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .time-slot {
+    padding: 10px 8px;
+    border: 0.5px solid #e8eef4;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    background: #fff;
+    transition: all 120ms ease;
+    box-sizing: border-box;
+  }
+
+  .time-slot.booked {
+    background: #f9fafb;
+    color: #c7cdd2;
+    cursor: not-allowed;
+    opacity: 0.95;
+  }
+
+  .time-slot.selected {
+    background: #1a4a7a;
+    color: #fff !important;
+    border-color: #1a4a7a;
+  }
+
+  .time-slot:hover:not(.booked) {
+    border-color: #1a4a7a;
+    color: #1a4a7a;
+    transform: translateY(-2px);
+  }
+
+  .confirm-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1a4a7a, #2d7a4e);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: opacity 0.15s;
+  }
+
+  .confirm-btn:hover { opacity: 0.92; }
+
+  .token-card {
+    background: linear-gradient(135deg, #1a4a7a, #1e5c96);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .token-label { font-size: 12px; opacity: 0.75; margin-bottom: 4px; }
+  .token-number { font-size: 64px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .token-doc { font-size: 13px; opacity: 0.85; }
+
+  .queue-status {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  .queue-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .queue-row:last-child { margin-bottom: 0; }
+
+  .q-label { font-size: 12px; color: #6b7280; }
+  .q-val { font-size: 13px; font-weight: 600; color: #1f2937; }
+
+  .progress-bar {
+    height: 6px;
+    background: #e8eef4;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1a4a7a, #3a9c5f);
+    border-radius: 3px;
+    width: 40%;
+  }
+
+  .symptom-input {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .symptom-input textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #374151;
+    resize: none;
+    outline: none;
+    height: 70px;
+    line-height: 1.5;
+  }
+
+  .symptom-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .sym-tag {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 0.5px solid #e8eef4;
+    background: #fff;
+    color: #6b7280;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .sym-tag.sel { background: #e8f5ed; color: #1d6b3a; border-color: #3a9c5f; }
+
+  .ai-result {
+    background: #e8f5ed;
+    border: 0.5px solid #b8dfc8;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .ai-result-title { font-size: 12px; font-weight: 600; color: #1d6b3a; margin-bottom: 6px; }
+  .ai-result-text { font-size: 12px; color: #374151; line-height: 1.5; }
+
+  .dash-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .dash-stat {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .dash-stat-val { font-size: 22px; font-weight: 700; color: #1a4a7a; }
+  .dash-stat-lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+  .appointment-row {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  .appt-time {
+    background: #eef3ff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .appt-time-val { font-size: 13px; font-weight: 700; color: #1a4a7a; }
+  .appt-time-period { font-size: 9px; color: #6b7280; }
+
+  .appt-info { flex: 1; }
+  .appt-name { font-size: 12px; font-weight: 600; color: #1f2937; }
+  .appt-type { font-size: 11px; color: #6b7280; }
+
+  .status-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .pill-waiting { background: #fef3cd; color: #92600a; }
+  .pill-done { background: #e8f5ed; color: #1d6b3a; }
+  .pill-next { background: #dbeafe; color: #1a4a7a; }
+
+  .hosp-header {
+    background: linear-gradient(135deg, #1d6b3a, #2d7a4e);
+    padding: 14px 18px 12px;
+    flex-shrink: 0;
+  }
+
+  .hosp-header-title { color: #fff; font-size: 15px; font-weight: 600; }
+  .hosp-header-sub { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; }
+
+  .queue-live {
+    background: #fff;
+    border: 0.5px solid #e8eef4;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .queue-live-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .ql-title { font-size: 12px; font-weight: 600; color: #1f2937; }
+  .ql-count { font-size: 11px; color: #6b7280; }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #3a9c5f;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .patient-queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .pq-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: #f7fafd;
+  }
+
+  .pq-item.current { background: #e8f5ed; }
+
+  .pq-num {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: #e8eef4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #374151;
+    flex-shrink: 0;
+  }
+
+  .pq-item.current .pq-num { background: #3a9c5f; color: #fff; }
+
+  .pq-name { font-size: 11px; color: #374151; flex: 1; }
+  .pq-wait { font-size: 10px; color: #9ca3af; }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .step-dot.active { background: #1a4a7a; width: 18px; border-radius: 3px; }
+
+  .prev-btn, .next-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 0.5px solid #e8eef4;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .next-btn { background: #1a4a7a; color: #fff; border-color: #1a4a7a; }
+  .prev-btn:hover { border-color: #1a4a7a; color: #1a4a7a; }
+  .next-btn:hover { opacity: 0.88; }
+
+  .screen-label {
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+    margin-top: 10px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .notif-banner {
+    background: #e8f5ed;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .notif-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .notif-text { font-size: 11px; color: #1d6b3a; line-height: 1.4; }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 0.5px solid #f0f4f8;
+  }
+
+  .toggle-label { font-size: 12px; color: #374151; font-weight: 500; }
+  .toggle-sub { font-size: 10px; color: #9ca3af; }
+
+  .toggle {
+    width: 36px; height: 20px;
+    background: #3a9c5f;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px; right: 2px;
+    transition: right 0.2s;
+  }
+
+  .toggle.off { background: #d1d5db; }
+  .toggle.off::after { right: auto; left: 2px; }
+</style>
+
+<div class="proto-wrap">
+  <h2 class="sr-only">MediQueue interactive mobile app prototype showing patient, doctor, and hospital flows across 8 screens</h2>
+
+  <div class="flow-tabs">
+    <button class="flow-tab active" onclick="switchFlow('patient')">Patient flow</button>
+    <button class="flow-tab" onclick="switchFlow('doctor')">Doctor view</button>
+    <button class="flow-tab" onclick="switchFlow('hospital')">Hospital panel</button>
+  </div>
+
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-inner">
+
+      <div class="screen active" id="s-home">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <span style="width:10px;height:6px;opacity:0.5"></span>
+            <span style="width:12px;height:6px;opacity:0.7"></span>
+            <span style="width:14px;height:6px"></span>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <div class="header-logo">
+              <div class="logo-icon">M</div>
+              <div class="logo-text"><span class="medi">Medi</span><span class="queue">Queue</span></div>
+            </div>
+            <!-- <div class="header-avatar" style="background:#1a1a2e;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.2);border-radius:12px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.5 2.5a8.5 8.5 0 1 0 8 11.2A9.5 9.5 0 1 1 13.5 2.5Z" fill="#ffffff"/></svg>
+
+            </div> -->
+          </div>
+          <div class="scroll-area">
+            <div class="hero-card">
+              <div class="hero-greeting">Good morning</div>
+              <div class="hero-name">Peter Parker</div>
+              <div class="hero-stats">
+                <div class="hero-stat">
+                  <div class="hero-stat-val" id="home-upcoming-count">1</div>
+                  <div class="hero-stat-lbl">Upcoming</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-val" id="home-token-number">016</div>
+                  <div class="hero-stat-lbl">Your token</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-val" id="home-wait-time">~35m</div>
+                  <div class="hero-stat-lbl">Wait time</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title">Quick actions</div>
+            <div class="quick-actions">
+              <button class="qa-btn" onclick="goScreen('s-search')">
+                <div class="qa-icon" style="background:#eef3ff;" aria-hidden="false" role="img" aria-label="Find doctor">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="#1a4a7a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" stroke="#1a4a7a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="qa-label">Find doctor</div>
+                <div class="qa-sub">Search by specialty</div>
+              </button>
+              <button class="qa-btn" onclick="goScreen('s-queue')">
+                <div class="qa-icon" style="background:#e8f5ed;" aria-hidden="false" role="img" aria-label="My queue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 6h13" stroke="#2d7a4e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 12h13" stroke="#2d7a4e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18h13" stroke="#2d7a4e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="5" width="3" height="3" rx="0.8" fill="#2d7a4e"/></svg>
+                </div>
+                <div class="qa-label">My queue</div>
+                <div class="qa-sub">Token number</div>
+              </button>
+              <button class="qa-btn" onclick="goScreen('s-symptom')">
+                <div class="qa-icon" style="background:#fef3cd;" aria-hidden="false" role="img" aria-label="AI checker">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v2" stroke="#92600a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 5.5A3.5 3.5 0 1 0 15 9" stroke="#92600a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="qa-label">AI checker</div>
+                <div class="qa-sub">Check symptoms</div>
+              </button>
+              <button class="qa-btn" onclick="goScreen('s-lab')">
+                <div class="qa-icon" style="background:#fce8ed;" aria-hidden="false" role="img" aria-label="Lab tests">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 7l5 5" stroke="#993556" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3v6a4 4 0 1 1-4 4" stroke="#993556" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="qa-label">Lab tests</div>
+                <div class="qa-sub">Book diagnostic</div>
+              </button>
+            </div>
+
+            <div class="section-title">Popular doctors nearby</div>
+
+            <div class="doc-card" onclick="openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#1a4a7a,#2d6fa8);">DR</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Rahat Islam</div>
+                <div class="doc-spec">Cardiologist · BSMMU</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.9</span>
+                  <span class="avail-badge">Available today</span>
+                  <span class="fee-badge">৳ 800</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">Book</button>
+            </div>
+
+            <div class="doc-card" onclick="openBooking('Dr. Ayesha Ahmed','Dermatologist','Popular Medical','AA','#2d7a4e','#3a9c5f')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#2d7a4e,#3a9c5f);">AA</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Ayesha Ahmed</div>
+                <div class="doc-spec">Dermatologist · Popular Medical</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.7</span>
+                  <span class="avail-badge">Tomorrow</span>
+                  <span class="fee-badge">৳ 600</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Ayesha Ahmed','Dermatologist','Popular Medical','AA','#2d7a4e','#3a9c5f')">Book</button>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item active"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item" onclick="goScreen('s-search')"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item" onclick="goScreen('s-queue')"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item" onclick="goScreen('s-symptom')"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-search">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <button onclick="goScreen('s-home')" style="background:none;border:none;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px;font-size:13px;font-family:'DM Sans',sans-serif;"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i> Back</button>
+            <div class="logo-text" style="font-size:14px;"><span class="medi">Find a</span> <span class="queue">Doctor</span></div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div class="search-bar">
+              <i class="ti ti-search" style="color:#9ca3af;font-size:16px;" aria-hidden="true"></i>
+              <input type="text" placeholder="Search doctors, specialty..." />
+            </div>
+            <div class="filter-chips">
+              <button class="chip active" type="button" onclick="filterDoctors('all', this)">All</button>
+              <button class="chip" type="button" onclick="filterDoctors('cardiology', this)">Cardiology</button>
+              <button class="chip" type="button" onclick="filterDoctors('dermatology', this)">Dermatology</button>
+              <button class="chip" type="button" onclick="filterDoctors('paediatrics', this)">Paediatrics</button>
+              <button class="chip" type="button" onclick="filterDoctors('gynaecology', this)">Gynaecology</button>
+              <button class="chip" type="button" onclick="filterDoctors('neurology', this)">Neurology</button>
+            </div>
+
+            <div class="doc-card" data-specialty="cardiology" onclick="openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#1a4a7a,#2d6fa8);">DR</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Rahat Islam</div>
+                <div class="doc-spec">Cardiologist · BSMMU</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.9</span>
+                  <span class="avail-badge">Today</span>
+                  <span class="fee-badge">৳ 800</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">Book</button>
+            </div>
+
+            <div class="doc-card" data-specialty="dermatology" onclick="openBooking('Dr. Ayesha Ahmed','Dermatologist','Popular Medical','AA','#2d7a4e','#3a9c5f')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#2d7a4e,#3a9c5f);">AA</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Ayesha Ahmed</div>
+                <div class="doc-spec">Dermatologist · Popular Medical</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.7</span>
+                  <span class="avail-badge">Tomorrow</span>
+                  <span class="fee-badge">৳ 600</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Ayesha Ahmed','Dermatologist','Popular Medical','AA','#2d7a4e','#3a9c5f')">Book</button>
+            </div>
+
+            <div class="doc-card" data-specialty="paediatrics" onclick="openBooking('Dr. Kamal Hasan','Paediatrician','Ibn Sina Hospital','KH','#854F0B','#EF9F27')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#854F0B,#EF9F27);">KH</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Kamal Hasan</div>
+                <div class="doc-spec">Paediatrician · Ibn Sina Hospital</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.8</span>
+                  <span class="avail-badge">Today</span>
+                  <span class="fee-badge">৳ 700</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Kamal Hasan','Paediatrician','Ibn Sina Hospital','KH','#854F0B','#EF9F27')">Book</button>
+            </div>
+
+            <div class="doc-card" data-specialty="gynaecology" onclick="openBooking('Dr. Sumaiya Akter','Gynaecologist','Labaid Hospital','SA','#993556','#D4537E')">
+              <div class="doc-avatar" style="background:linear-gradient(135deg,#993556,#D4537E);">SA</div>
+              <div class="doc-info">
+                <div class="doc-name">Dr. Sumaiya Akter</div>
+                <div class="doc-spec">Gynaecologist · Labaid Hospital</div>
+                <div class="doc-meta">
+                  <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.6</span>
+                  <span class="avail-badge">In 2 days</span>
+                  <span class="fee-badge">৳ 900</span>
+                </div>
+              </div>
+              <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Sumaiya Akter','Gynaecologist','Labaid Hospital','SA','#993556','#D4537E')">Book</button>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item" onclick="goScreen('s-home')"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item active"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item" onclick="goScreen('s-queue')"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item" onclick="goScreen('s-symptom')"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-book">
+        <div class="status-bar">
+          <span class="status-time">9:43</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <button onclick="goScreen('s-search')" style="background:none;border:none;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px;font-size:13px;font-family:'DM Sans',sans-serif;"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i> Back</button>
+            <div class="logo-text" style="font-size:14px;"><span class="queue">Book</span> <span class="medi">Appointment</span></div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div class="booking-detail">
+              <div class="doc-profile-row">
+                <div class="doc-profile-avatar" id="booking-doc-avatar" style="background:linear-gradient(135deg,#1a4a7a,#2d6fa8);">DR</div>
+                <div>
+                  <div class="profile-name" id="booking-doc-name">Dr. Rahat Islam</div>
+                  <div class="profile-spec" id="booking-doc-spec">MBBS, FCPS — Cardiologist</div>
+                  <div class="profile-hospital" id="booking-doc-hospital"><i class="ti ti-building-hospital" style="font-size:10px;" aria-hidden="true"></i> BSMMU, Shahbag, Dhaka</div>
+                </div>
+              </div>
+
+              <div class="cal-label">Select date — June 2026</div>
+              <div class="cal-grid">
+                <div class="cal-day header">Su</div><div class="cal-day header">Mo</div><div class="cal-day header">Tu</div><div class="cal-day header">We</div><div class="cal-day header">Th</div><div class="cal-day header">Fr</div><div class="cal-day header">Sa</div>
+                <div class="cal-day inactive">1</div><div class="cal-day inactive">2</div><div class="cal-day inactive">3</div><div class="cal-day inactive">4</div><div class="cal-day inactive">5</div><div class="cal-day inactive">6</div><div class="cal-day inactive">7</div>
+                <div class="cal-day today">8</div><div class="cal-day" onclick="selectDate(this)">9</div><div class="cal-day selected" onclick="selectDate(this)">10</div><div class="cal-day" onclick="selectDate(this)">11</div><div class="cal-day" onclick="selectDate(this)">12</div><div class="cal-day inactive">13</div><div class="cal-day inactive">14</div>
+                <div class="cal-day" onclick="selectDate(this)">15</div><div class="cal-day" onclick="selectDate(this)">16</div><div class="cal-day" onclick="selectDate(this)">17</div><div class="cal-day" onclick="selectDate(this)">18</div><div class="cal-day" onclick="selectDate(this)">19</div><div class="cal-day inactive">20</div><div class="cal-day inactive">21</div>
+              </div>
+
+              <div class="cal-label">Available time slots</div>
+              <div class="time-slots">
+                <div class="time-slot booked">10:30 AM</div>
+                <div class="time-slot booked">11:00 AM</div>
+                <div class="time-slot" onclick="selectSlot(this)">11:30 AM</div>
+                <div class="time-slot booked">12:00 PM</div>
+                <div class="time-slot selected" onclick="selectSlot(this)">2:00 PM</div>
+                <div class="time-slot" onclick="selectSlot(this)">3:00 PM</div>
+                <div class="time-slot" onclick="selectSlot(this)">4:00 PM</div>
+                <div class="time-slot booked">4:30 PM</div>
+                <div class="time-slot" onclick="selectSlot(this)">5:00 PM</div>
+              </div>
+            </div>
+
+            <div style="background:#f0f6ff;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#374151;display:flex;justify-content:space-between;">
+              <span>Consultation fee</span>
+              <span style="font-weight:600;color:#1a4a7a;">৳ 800 + 30 platform fee</span>
+            </div>
+
+            <button class="confirm-btn" onclick="confirmAppointment()">Confirm appointment</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-queue">
+        <div class="status-bar">
+          <span class="status-time">9:51</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <button onclick="goScreen('s-home')" style="background:none;border:none;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px;font-size:13px;font-family:'DM Sans',sans-serif;"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i> Back</button>
+            <div class="logo-text" style="font-size:14px;"><span class="medi">My</span> <span class="queue">Queue</span></div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div class="notif-banner">
+              <i class="ti ti-bell notif-icon" style="color:#2d7a4e;" aria-hidden="true"></i>
+              <div class="notif-text">Token #013 is now being seen. You are 3 patients away — approximately 35 minutes.</div>
+            </div>
+
+            <div class="token-card">
+              <div class="token-label">Your token number</div>
+              <div class="token-number" id="queue-token-number">016</div>
+              <div class="token-doc" id="queue-token-doc">Dr. Rahat Islam — Cardiology</div>
+            </div>
+
+            <div class="queue-status">
+              <div class="queue-row">
+                <span class="q-label">Currently seeing</span>
+                <span class="q-val" id="queue-current-token">Token #013</span>
+              </div>
+              <div class="queue-row">
+                <span class="q-label">Patients ahead of you</span>
+                <span class="q-val" id="queue-patients-ahead">3</span>
+              </div>
+              <div class="queue-row">
+                <span class="q-label">Estimated wait</span>
+                <span class="q-val" id="queue-wait-time" style="color:#2d7a4e;">~35 minutes</span>
+              </div>
+              <div class="queue-row">
+                <span class="q-label">Appointment time</span>
+                <span class="q-val" id="queue-appointment-time">2:00 PM, Jun 10</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="queue-progress-fill"></div>
+              </div>
+            </div>
+
+            <div class="section-title" style="margin-top:4px;">Queue progress</div>
+
+            <div class="queue-status">
+              <div class="patient-queue-list">
+                <div class="pq-item current">
+                  <div class="pq-num">013</div>
+                  <div class="pq-name">In consultation</div>
+                  <div class="pq-wait" style="color:#2d7a4e;font-weight:600;">Now</div>
+                </div>
+                <div class="pq-item">
+                  <div class="pq-num">014</div>
+                  <div class="pq-name">Waiting</div>
+                  <div class="pq-wait">~10 min</div>
+                </div>
+                <div class="pq-item">
+                  <div class="pq-num">015</div>
+                  <div class="pq-name">Waiting</div>
+                  <div class="pq-wait">~22 min</div>
+                </div>
+                <div class="pq-item" style="background:#eef3ff;">
+                  <div class="pq-num" style="background:#1a4a7a;color:#fff;">016</div>
+                  <div class="pq-name" style="font-weight:600;color:#1a4a7a;">You</div>
+                  <div class="pq-wait" style="color:#1a4a7a;font-weight:600;">~35 min</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item" onclick="goScreen('s-home')"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item" onclick="goScreen('s-search')"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item active"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item" onclick="goScreen('s-symptom')"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-symptom">
+        <div class="status-bar">
+          <span class="status-time">9:55</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <button onclick="goScreen('s-home')" style="background:none;border:none;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px;font-size:13px;font-family:'DM Sans',sans-serif;"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i> Back</button>
+            <div class="logo-text" style="font-size:14px;"><span class="queue">AI</span> <span class="medi">Symptom Checker</span></div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div style="background:#fff;border:0.5px solid #e8eef4;border-radius:14px;padding:12px;margin-bottom:12px;">
+              <div style="font-size:11px;color:#6b7280;margin-bottom:6px;font-weight:500;">Describe your symptoms</div>
+              <div class="symptom-input" style="margin-bottom:0;border:0.5px solid #e8eef4;">
+                <textarea placeholder="e.g. I have chest pain and shortness of breath since this morning...">Chest pain, shortness of breath, mild fever for 2 days.</textarea>
+              </div>
+            </div>
+
+            <div class="section-title">Common symptoms — tap to add</div>
+            <div class="symptom-tags">
+              <span class="sym-tag sel">Chest pain</span>
+              <span class="sym-tag sel">Shortness of breath</span>
+              <span class="sym-tag">Fever</span>
+              <span class="sym-tag">Headache</span>
+              <span class="sym-tag">Nausea</span>
+              <span class="sym-tag">Fatigue</span>
+              <span class="sym-tag">Cough</span>
+              <span class="sym-tag">Dizziness</span>
+              <span class="sym-tag">Stomach pain</span>
+            </div>
+
+            <button class="confirm-btn" style="margin-bottom:14px;background:linear-gradient(135deg,#854F0B,#BA7517);" onclick="document.getElementById('ai-result-area').style.display='block'">
+              <i class="ti ti-brain" aria-hidden="true"></i> Analyse symptoms
+            </button>
+
+            <div id="ai-result-area" style="display:block;">
+              <div class="ai-result">
+                <div class="ai-result-title"><i class="ti ti-sparkles" aria-hidden="true"></i> AI recommendation</div>
+                <div class="ai-result-text">Based on your symptoms — chest pain and shortness of breath — we suggest consulting a <strong>Cardiologist</strong> as soon as possible. These symptoms may require urgent evaluation.</div>
+              </div>
+
+              <div class="section-title">Recommended doctors</div>
+              <div class="doc-card" onclick="openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">
+                <div class="doc-avatar" style="background:linear-gradient(135deg,#1a4a7a,#2d6fa8);">DR</div>
+                <div class="doc-info">
+                  <div class="doc-name">Dr. Rahat Islam</div>
+                  <div class="doc-spec">Cardiologist · BSMMU</div>
+                  <div class="doc-meta">
+                    <span class="rating-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 4.9</span>
+                    <span class="avail-badge">Available today</span>
+                  </div>
+                </div>
+                <button class="book-btn-sm" onclick="event.stopPropagation();openBooking('Dr. Rahat Islam','Cardiologist','BSMMU','DR','#1a4a7a','#2d6fa8')">Book</button>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item" onclick="goScreen('s-home')"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item" onclick="goScreen('s-search')"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item" onclick="goScreen('s-queue')"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item active"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="screen" id="s-lab">
+        <div class="status-bar">
+          <span class="status-time">9:42</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <button onclick="goScreen('s-home')" style="background:none;border:none;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px;font-size:13px;font-family:'DM Sans',sans-serif;"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i> Back</button>
+            <div class="logo-text" style="font-size:14px;"><span class="queue">Lab</span> <span class="medi">Tests</span></div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div style="background:#fff;border:0.5px solid #e8eef4;border-radius:14px;padding:12px;margin-bottom:12px;">
+              <div style="font-size:13px;color:#374151;font-weight:600;margin-bottom:6px;">Book diagnostic tests</div>
+              <div style="font-size:12px;color:#6b7280;">Select test packages and preferred lab partner.</div>
+            </div>
+            <div class="doc-card">
+              <div style="flex:1;">
+                <div class="doc-name">Basic Blood Panel</div>
+                <div class="doc-spec">Includes CBC, Glucose, Lipid profile</div>
+              </div>
+              <button class="book-btn-sm" onclick="goScreen('s-book')">Book</button>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item" onclick="goScreen('s-home')"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item" onclick="goScreen('s-search')"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item" onclick="goScreen('s-queue')"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item" onclick="goScreen('s-symptom')"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-profile">
+        <div class="status-bar">
+          <span class="status-time">9:40</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <div class="header-logo">
+              <div class="logo-icon">M</div>
+              <div class="logo-text"><span class="medi">Medi</span><span class="queue">Queue</span></div>
+            </div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="scroll-area">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div class="doc-profile-avatar" style="background:#1a1a2e;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.12);">PP</div>
+              <div>
+                <div class="profile-name">Peter Parker</div>
+                <div class="profile-hospital">Member since 2024</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:0.5px solid #e8eef4;border-radius:12px;padding:12px;">
+              <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">Account</div>
+              <div style="font-size:12px;color:#6b7280;">Manage your profile, bookings and notifications.</div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <button class="nav-item" onclick="goScreen('s-home')"><i class="ti ti-home nav-icon" aria-hidden="true"></i><span class="nav-label">Home</span></button>
+            <button class="nav-item" onclick="goScreen('s-search')"><i class="ti ti-search nav-icon" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+            <button class="nav-item" onclick="goScreen('s-queue')"><i class="ti ti-list-numbers nav-icon" aria-hidden="true"></i><span class="nav-label">Queue</span></button>
+            <button class="nav-item" onclick="goScreen('s-symptom')"><i class="ti ti-brain nav-icon" aria-hidden="true"></i><span class="nav-label">AI</span></button>
+            <button class="nav-item active" onclick="goScreen('s-profile')"><i class="ti ti-user nav-icon" aria-hidden="true"></i><span class="nav-label">Profile</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-doctor">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="app-header">
+            <div class="header-logo">
+              <div class="logo-icon">M</div>
+              <div class="logo-text"><span class="medi">Medi</span><span class="queue">Queue</span></div>
+            </div>
+            <!-- <div class="header-avatar" id="doctor-avatar" style="background:#eef3ff;color:#1a4a7a;">DR</div> -->
+          </div>
+          <div class="scroll-area">
+            <div id="doctor-name" style="font-size:15px;font-weight:600;color:#1f2937;margin-bottom:2px;">Dr. Rahat Islam</div>
+            <div id="doctor-spec" style="font-size:12px;color:#6b7280;margin-bottom:14px;">Cardiologist · BSMMU, Dhaka</div>
+
+            <div class="dash-stat-grid">
+              <div class="dash-stat">
+                <div class="dash-stat-val" id="doctor-patients-today">24</div>
+                <div class="dash-stat-lbl">Today's patients</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" id="doctor-now-serving" style="color:#2d7a4e;">013</div>
+                <div class="dash-stat-lbl">Now serving</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" id="doctor-remaining" style="color:#92600a;">11</div>
+                <div class="dash-stat-lbl">Remaining</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" id="doctor-revenue" style="color:#2d7a4e;">৳ 9,600</div>
+                <div class="dash-stat-lbl">Today's revenue</div>
+              </div>
+            </div>
+
+            <div class="section-title" id="doctor-schedule-title">Today's schedule — Jun 10, 2026</div>
+
+            <div class="appointment-row">
+              <div class="appt-time">
+                <div class="appt-time-val">10:00</div>
+                <div class="appt-time-period">AM</div>
+              </div>
+              <div class="appt-info">
+                <div class="appt-name">Nusrat Jahan</div>
+                <div class="appt-type">Follow-up · Token #010</div>
+              </div>
+              <span class="status-pill pill-done">Done</span>
+            </div>
+
+            <div class="appointment-row" style="border:1px solid #3a9c5f;">
+              <div class="appt-time" style="background:#e8f5ed;">
+                <div class="appt-time-val" id="doctor-current-hour" style="color:#2d7a4e;">02:00</div>
+                <div class="appt-time-period" id="doctor-current-period">PM</div>
+              </div>
+              <div class="appt-info">
+                <div class="appt-name" id="doctor-current-name">Peter Parker</div>
+                <div class="appt-type" id="doctor-current-type">New visit · Token #013</div>
+              </div>
+              <span class="status-pill pill-next" id="doctor-current-status">Now</span>
+            </div>
+
+            <div class="appointment-row">
+              <div class="appt-time">
+                <div class="appt-time-val">02:30</div>
+                <div class="appt-time-period">PM</div>
+              </div>
+              <div class="appt-info">
+                <div class="appt-name">Shahida Begum</div>
+                <div class="appt-type">New visit · Token #014</div>
+              </div>
+              <span class="status-pill pill-waiting">Waiting</span>
+            </div>
+
+            <div class="appointment-row">
+              <div class="appt-time">
+                <div class="appt-time-val">03:00</div>
+                <div class="appt-time-period">PM</div>
+              </div>
+              <div class="appt-info">
+                <div class="appt-name">Karim Uddin</div>
+                <div class="appt-type">Follow-up · Token #015</div>
+              </div>
+              <span class="status-pill pill-waiting">Waiting</span>
+            </div>
+
+            <div class="appointment-row">
+              <div class="appt-time">
+                <div class="appt-time-val">03:30</div>
+                <div class="appt-time-period">PM</div>
+              </div>
+              <div class="appt-info">
+                <div class="appt-name">Peter Parker</div>
+                <div class="appt-type">New visit · Token #016</div>
+              </div>
+              <span class="status-pill pill-waiting">Waiting</span>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div class="section-title">Availability settings</div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">Accepting new patients</div>
+                  <div class="toggle-sub">Visible on the patient app</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">SMS queue notifications</div>
+                  <div class="toggle-sub">Alert patients when near</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">Emergency slots</div>
+                  <div class="toggle-sub">Reserve 2 daily slots</div>
+                </div>
+                <div class="toggle off"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="s-hospital">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons"><span style="width:14px;height:6px"></span></div>
+        </div>
+        <div class="screen-content">
+          <div class="hosp-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="logo-icon" style="background:rgba(255,255,255,0.2);font-size:13px;">H</div>
+                <div>
+                <div class="hosp-header-title">Mount Adora Hospital</div>
+                <div class="hosp-header-sub">Hospital admin panel · Sylhet</div>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-area">
+
+            <div class="dash-stat-grid" style="margin-top:4px;">
+              <div class="dash-stat">
+                <div class="dash-stat-val">6</div>
+                <div class="dash-stat-lbl">Active doctors</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" style="color:#2d7a4e;">142</div>
+                <div class="dash-stat-lbl">Bookings today</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" style="color:#92600a;">38</div>
+                <div class="dash-stat-lbl">In queue now</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-val" style="font-size:14px;color:#1d6b3a;">৳ 71K</div>
+                <div class="dash-stat-lbl">Today's revenue</div>
+              </div>
+            </div>
+
+            <div class="section-title">Live queue by department</div>
+
+            <div class="queue-live">
+              <div class="queue-live-header">
+                <div class="ql-title"><span class="live-dot"></span>Cardiology — Dr. Rahat Islam</div>
+                <div class="ql-count">11 waiting</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:55%;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:10px;color:#6b7280;">Now: Token #013</span>
+                <span style="font-size:10px;color:#6b7280;">Avg wait: ~35 min</span>
+              </div>
+            </div>
+
+            <div class="queue-live">
+              <div class="queue-live-header">
+                <div class="ql-title"><span class="live-dot" style="background:#EF9F27;"></span>Dermatology — Dr. Ayesha Ahmed</div>
+                <div class="ql-count">7 waiting</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:35%;background:linear-gradient(90deg,#EF9F27,#BA7517);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:10px;color:#6b7280;">Now: Token #022</span>
+                <span style="font-size:10px;color:#6b7280;">Avg wait: ~20 min</span>
+              </div>
+            </div>
+
+            <div class="queue-live">
+              <div class="queue-live-header">
+                <div class="ql-title"><span class="live-dot" style="background:#D4537E;"></span>Gynaecology — Dr. Sumaiya Akter</div>
+                <div class="ql-count">4 waiting</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:20%;background:linear-gradient(90deg,#D4537E,#993556);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:10px;color:#6b7280;">Now: Token #008</span>
+                <span style="font-size:10px;color:#6b7280;">Avg wait: ~12 min</span>
+              </div>
+            </div>
+
+            <div class="section-title" style="margin-top:4px;">Today's booking overview</div>
+            <div style="background:#fff;border:0.5px solid #e8eef4;border-radius:12px;padding:12px;">
+              <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f4f8;">
+                <span style="font-size:11px;color:#6b7280;">Total appointments</span>
+                <span style="font-size:12px;font-weight:600;color:#1f2937;">142</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f4f8;">
+                <span style="font-size:11px;color:#6b7280;">Completed</span>
+                <span style="font-size:12px;font-weight:600;color:#2d7a4e;">104</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f4f8;">
+                <span style="font-size:11px;color:#6b7280;">In queue</span>
+                <span style="font-size:12px;font-weight:600;color:#92600a;">38</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:5px 0;">
+                <span style="font-size:11px;color:#6b7280;">No-shows</span>
+                <span style="font-size:12px;font-weight:600;color:#993556;">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="nav-btn" id="nav-controls">
+    <button class="prev-btn" id="prev-btn" onclick="changeStep(-1)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Prev</button>
+    <div style="display:flex;gap:5px;align-items:center;" id="dot-container"></div>
+    <button class="next-btn" id="next-btn" onclick="changeStep(1)">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+
+  <div class="screen-label" id="screen-label">Screen 1 of 5 — Patient: Home</div>
+</div>
+
+<script>
+const flows = {
+  patient: {
+    screens: ['s-home','s-search','s-book','s-queue','s-symptom','s-lab','s-profile'],
+    labels: ['Patient: Home','Patient: Search doctors','Patient: Book appointment','Patient: Queue & token','Patient: AI symptom checker','Patient: Lab tests','Patient: Profile']
+  },
+  doctor: {
+    screens: ['s-doctor'],
+    labels: ['Doctor: Schedule dashboard']
+  },
+  hospital: {
+    screens: ['s-hospital'],
+    labels: ['Hospital: Admin panel']
+  }
+};
+
+let currentFlow = 'patient';
+let currentStep = 0;
+
+const appState = {
+  searchFilter: 'all',
+  selectedDoctor: {
+    name: 'Dr. Rahat Islam',
+    specialty: 'Cardiologist',
+    hospital: 'BSMMU, Shahbag, Dhaka',
+    avatar: 'DR',
+    avatarBackground: 'linear-gradient(135deg,#1a4a7a,#2d6fa8)',
+    avatarColor: '#fff'
+  },
+  booking: {
+    patientName: 'Peter Parker',
+    appointmentDate: '10 Jun 2026',
+    appointmentTime: '2:00 PM',
+    token: '016',
+    upcoming: '1',
+    waitTime: '~35m'
+  },
+  queue: {
+    currentToken: '013',
+    patientsAhead: '3',
+    waitTime: '~35 minutes',
+    appointmentTime: '2:00 PM, Jun 10',
+    progress: 40,
+    tokenDoc: 'Dr. Rahat Islam — Cardiologist'
+  },
+  doctor: {
+    patientsToday: '24',
+    revenue: '৳ 9,600',
+    remaining: '11'
+  }
+};
+
+function parseAppointmentTime(value) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return { hour: String(value || ''), period: '' };
+  return { hour: `${match[1]}:${match[2]}`, period: match[3].toUpperCase() };
+}
+
+function renderDynamicViews() {
+  const homeUpcoming = document.getElementById('home-upcoming-count');
+  if (homeUpcoming) homeUpcoming.textContent = appState.booking.upcoming;
+
+  const homeTokenNumber = document.getElementById('home-token-number');
+  if (homeTokenNumber) homeTokenNumber.textContent = appState.booking.token;
+
+  const homeWaitTime = document.getElementById('home-wait-time');
+  if (homeWaitTime) homeWaitTime.textContent = appState.booking.waitTime;
+
+  const queueTokenNumber = document.getElementById('queue-token-number');
+  if (queueTokenNumber) queueTokenNumber.textContent = appState.booking.token;
+
+  const queueTokenDoc = document.getElementById('queue-token-doc');
+  if (queueTokenDoc) queueTokenDoc.textContent = appState.queue.tokenDoc;
+
+  const queueCurrentToken = document.getElementById('queue-current-token');
+  if (queueCurrentToken) queueCurrentToken.textContent = 'Token #' + appState.queue.currentToken;
+
+  const queuePatientsAhead = document.getElementById('queue-patients-ahead');
+  if (queuePatientsAhead) queuePatientsAhead.textContent = appState.queue.patientsAhead;
+
+  const queueWaitTime = document.getElementById('queue-wait-time');
+  if (queueWaitTime) queueWaitTime.textContent = appState.queue.waitTime;
+
+  const queueAppointmentTime = document.getElementById('queue-appointment-time');
+  if (queueAppointmentTime) queueAppointmentTime.textContent = appState.queue.appointmentTime;
+
+  const queueProgressFill = document.getElementById('queue-progress-fill');
+  if (queueProgressFill) queueProgressFill.style.width = appState.queue.progress + '%';
+
+  const queueBanner = document.querySelector('#s-queue .notif-text');
+  if (queueBanner) {
+    queueBanner.textContent = 'Token #' + appState.queue.currentToken + ' is now being seen. You are ' + appState.queue.patientsAhead + ' patients away — approximately 35 minutes.';
+  }
+
+  const bookingAvatar = document.getElementById('booking-doc-avatar');
+  if (bookingAvatar) {
+    bookingAvatar.textContent = appState.selectedDoctor.avatar;
+    bookingAvatar.style.background = appState.selectedDoctor.avatarBackground;
+    bookingAvatar.style.color = appState.selectedDoctor.avatarColor;
+  }
+
+  const bookingName = document.getElementById('booking-doc-name');
+  if (bookingName) bookingName.textContent = appState.selectedDoctor.name;
+
+  const bookingSpec = document.getElementById('booking-doc-spec');
+  if (bookingSpec) bookingSpec.textContent = 'MBBS, FCPS — ' + appState.selectedDoctor.specialty;
+
+  const bookingHospital = document.getElementById('booking-doc-hospital');
+  if (bookingHospital) bookingHospital.innerHTML = '<i class="ti ti-building-hospital" style="font-size:10px;" aria-hidden="true"></i> ' + appState.selectedDoctor.hospital;
+
+  const doctorAvatar = document.getElementById('doctor-avatar');
+  if (doctorAvatar) {
+    doctorAvatar.textContent = appState.selectedDoctor.avatar;
+    doctorAvatar.style.background = appState.selectedDoctor.avatarBackground;
+    doctorAvatar.style.color = appState.selectedDoctor.avatarColor;
+  }
+
+  const doctorName = document.getElementById('doctor-name');
+  if (doctorName) doctorName.textContent = appState.selectedDoctor.name;
+
+  const doctorSpec = document.getElementById('doctor-spec');
+  if (doctorSpec) doctorSpec.textContent = appState.selectedDoctor.specialty + ' · ' + appState.selectedDoctor.hospital;
+
+  const doctorPatientsToday = document.getElementById('doctor-patients-today');
+  if (doctorPatientsToday) doctorPatientsToday.textContent = appState.doctor.patientsToday;
+
+  const doctorNowServing = document.getElementById('doctor-now-serving');
+  if (doctorNowServing) doctorNowServing.textContent = appState.queue.currentToken;
+
+  const doctorRemaining = document.getElementById('doctor-remaining');
+  if (doctorRemaining) doctorRemaining.textContent = appState.doctor.remaining;
+
+  const doctorRevenue = document.getElementById('doctor-revenue');
+  if (doctorRevenue) doctorRevenue.textContent = appState.doctor.revenue;
+
+  const doctorScheduleTitle = document.getElementById('doctor-schedule-title');
+  if (doctorScheduleTitle) doctorScheduleTitle.textContent = 'Today\'s schedule — ' + appState.booking.appointmentDate;
+
+  const doctorCurrentHour = document.getElementById('doctor-current-hour');
+  const doctorCurrentPeriod = document.getElementById('doctor-current-period');
+  const parsedTime = parseAppointmentTime(appState.booking.appointmentTime);
+  if (doctorCurrentHour) doctorCurrentHour.textContent = parsedTime.hour || appState.booking.appointmentTime;
+  if (doctorCurrentPeriod) doctorCurrentPeriod.textContent = parsedTime.period || 'PM';
+
+  const doctorCurrentName = document.getElementById('doctor-current-name');
+  if (doctorCurrentName) doctorCurrentName.textContent = appState.booking.patientName;
+
+  const doctorCurrentType = document.getElementById('doctor-current-type');
+  if (doctorCurrentType) doctorCurrentType.textContent = 'New visit · Token #' + appState.booking.token;
+
+  const doctorCurrentStatus = document.getElementById('doctor-current-status');
+  if (doctorCurrentStatus) doctorCurrentStatus.textContent = 'Next';
+}
+
+function applySearchFilter(category) {
+  const normalized = String(category || 'all').toLowerCase();
+  const cards = document.querySelectorAll('#s-search .doc-card[data-specialty]');
+  cards.forEach(card => {
+    const matches = normalized === 'all' || card.dataset.specialty === normalized;
+    card.style.display = matches ? '' : 'none';
+  });
+}
+
+function setActiveChip(activeChip) {
+  document.querySelectorAll('#s-search .filter-chips .chip').forEach(chip => chip.classList.remove('active'));
+  if (activeChip) activeChip.classList.add('active');
+}
+
+function filterDoctors(category, activeChip) {
+  appState.searchFilter = category;
+  setActiveChip(activeChip);
+  applySearchFilter(category);
+}
+
+function openBooking(name, specialty, hospital, avatar, avatarBackground, avatarColor) {
+  appState.selectedDoctor = {
+    name,
+    specialty,
+    hospital,
+    avatar,
+    avatarBackground,
+    avatarColor
+  };
+  currentFlow = 'patient';
+  currentStep = flows.patient.screens.indexOf('s-book');
+  render();
+}
+
+function getFlow() { return flows[currentFlow]; }
+
+function renderDots() {
+  const container = document.getElementById('dot-container');
+  const f = getFlow();
+  container.innerHTML = '';
+  f.screens.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'step-dot' + (i === currentStep ? ' active' : '');
+    d.onclick = () => { currentStep = i; render(); };
+    container.appendChild(d);
+  });
+}
+
+function render() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const f = getFlow();
+  const screenId = f.screens[currentStep];
+  const el = document.getElementById(screenId);
+  if (el) el.classList.add('active');
+  document.getElementById('screen-label').textContent =
+    'Screen ' + (currentStep+1) + ' of ' + f.screens.length + ' — ' + f.labels[currentStep];
+  document.getElementById('prev-btn').style.opacity = currentStep === 0 ? '0.3' : '1';
+  document.getElementById('next-btn').style.opacity = currentStep === f.screens.length-1 ? '0.3' : '1';
+  renderDots();
+  // ensure time slots are interactive/accessibile after render
+  initTimeSlots();
+  renderDynamicViews();
+  applySearchFilter(appState.searchFilter);
+}
+
+function changeStep(dir) {
+  const f = getFlow();
+  currentStep = Math.max(0, Math.min(f.screens.length-1, currentStep + dir));
+  render();
+}
+
+function switchFlow(flow) {
+  currentFlow = flow;
+  currentStep = 0;
+  document.querySelectorAll('.flow-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.flow-tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(flow)) t.classList.add('active');
+  });
+  render();
+}
+
+function goScreen(id) {
+  const f = getFlow();
+  const idx = f.screens.indexOf(id);
+  if (idx >= 0) { currentStep = idx; render(); }
+}
+
+function selectDate(el) {
+  document.querySelectorAll('.cal-day.selected').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  const dayLabel = el.textContent.trim();
+  if (dayLabel) appState.booking.appointmentDate = dayLabel + ' Jun 2026';
+}
+
+function selectSlot(el) {
+  if (!el || el.classList.contains('booked')) return;
+  document.querySelectorAll('.time-slot.selected').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  appState.booking.appointmentTime = el.textContent.trim();
+  // accessibility state
+  document.querySelectorAll('.time-slot').forEach(d => d.setAttribute('aria-pressed', d === el ? 'true' : 'false'));
+}
+
+function initTimeSlots() {
+  document.querySelectorAll('.time-slot').forEach(ts => {
+    ts.setAttribute('role','button');
+    ts.setAttribute('tabindex','0');
+    if (!ts.dataset._init) {
+      ts.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSlot(ts); }
+      });
+      ts.dataset._init = '1';
+    }
+  });
+}
+
+function confirmAppointment() {
+  const bookScreen = document.getElementById('s-book');
+  const slot = bookScreen.querySelector('.time-slot.selected');
+  const time = slot ? slot.textContent.trim() : '';
+  const dateEl = bookScreen.querySelector('.cal-day.selected');
+  const date = dateEl ? (dateEl.textContent.trim() + ' Jun 2026') : '';
+  if (time) appState.booking.appointmentTime = time;
+  if (date) appState.booking.appointmentDate = date;
+
+  const currentToken = parseInt(appState.booking.token, 10) || 16;
+  const newToken = currentToken + 1;
+  appState.booking.token = String(newToken).padStart(3, '0');
+  appState.booking.upcoming = '1';
+  appState.booking.waitTime = appState.queue.waitTime;
+
+  appState.queue.tokenDoc = appState.selectedDoctor.name + ' — ' + appState.selectedDoctor.specialty;
+  appState.queue.appointmentTime = (time || appState.booking.appointmentTime) + ', ' + (date || appState.booking.appointmentDate.replace(' 2026', ''));
+  appState.queue.patientsAhead = '3';
+  appState.queue.waitTime = '~35 minutes';
+  appState.queue.progress = 40;
+
+  const qScreen = document.getElementById('s-queue');
+  const items = Array.from(qScreen.querySelectorAll('.patient-queue-list .pq-item'));
+  const youItem = items.find(i => i.querySelector('.pq-name') && i.querySelector('.pq-name').textContent.trim() === 'You');
+  if (youItem) {
+    const numEl = youItem.querySelector('.pq-num');
+    if (numEl) numEl.textContent = appState.booking.token;
+    const waitEl = youItem.querySelector('.pq-wait');
+    if (waitEl) waitEl.textContent = '~35 min';
+  }
+
+  appState.doctor.patientsToday = '24';
+  appState.doctor.remaining = '11';
+  appState.doctor.revenue = '৳ 9,600';
+
+  renderDynamicViews();
+  goScreen('s-queue');
+}
+
+renderDynamicViews();
+applySearchFilter(appState.searchFilter);
+render();
+</script>
+
+</body>
+</html>
